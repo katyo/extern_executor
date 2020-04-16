@@ -1,0 +1,15 @@
+language = "C"
+cpp_compat = true
+tab_width = 4
+include_guard = "__RUST_ASYNC_EXECUTOR_H__"
+include_version = true
+
+[export]
+prefix = "RustAsyncExecutor"
+
+[enum]
+prefix_with_name = true
+
+#[parse.expand]
+#default_features = true
+#features = ["c", "dart", "logger"]
