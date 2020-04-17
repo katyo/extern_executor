@@ -19,6 +19,7 @@ version = "^1.5"
 [dependencies.extern_executor]
 version = "^0.1"
 path = "../extern_executor"
+features = ["cbindgen"]
 
 [build-dependencies]
 cbindgen = "^0.14"
