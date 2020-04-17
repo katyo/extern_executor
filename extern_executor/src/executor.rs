@@ -3,57 +3,50 @@ use crate::{
     UserData, RawUserData,
     Arc, Mutex, mutex_lock,
     Context, Poll,
-    Wake, waker_ref,
+    Wake, waker_ref, wake,
 };
 
 /// Raw C wake function
 ///
 /// This function will be called when pending future need to be polled again
-pub type RawWakeFn = fn(RawUserData);
+pub type RawTaskWakeFn = fn(RawUserData);
 
 /// Raw C poll function
 ///
 /// This function must be called to poll future on each wake event
-pub type RawPollFn = fn(RawUserData) -> bool;
+pub type RawTaskPollFn = fn(RawUserData) -> bool;
 
 /// Raw C drop function
 ///
 /// This function must be called to cleanup either pending or completed future
-pub type RawDropFn = fn(RawUserData);
+pub type RawTaskDropFn = fn(RawUserData);
+
+/// Task handle
+pub(crate) type BoxedTask = Arc<Task>;
 
 /// Create task for polling specified future by external event loop
-pub fn task_new_raw<T>(future: BoxFuture<'static, T>, wake: RawWakeFn, data: RawUserData) -> (RawPollFn, RawDropFn, RawUserData) {
+pub fn task_new_raw(future: BoxFuture<'static, ()>, data: RawUserData) -> RawUserData {
     let data = UserData::from(data);
-    let notify = || { wake(*data); };
+    let task = Arc::new(Task::new(future, data));
 
-    let task = Arc::new(Task::new(future, notify));
-
-    PollerFn::from(task.poller()).into()
+    Box::into_raw(Box::new(task)) as RawUserData
 }
 
-struct Task<T, U> {
-    future: Mutex<BoxFuture<'static, T>>,
-    notify: Mutex<U>,
+pub(crate) struct Task {
+    future: Mutex<BoxFuture<'static, ()>>,
+    data: UserData,
 }
 
-impl<T, U> Wake for Task<T, U>
-where
-    U: FnMut() + Send,
-{
+impl Wake for Task {
     fn wake_by_ref(arc_self: &Arc<Self>) {
-        let notify = &mut *mutex_lock(&arc_self.notify);
-        notify();
+        wake(*arc_self.data);
     }
 }
 
-impl<T, U> Task<T, U>
-where
-    U: FnMut() + Send,
-{
-    pub fn new(future: BoxFuture<'static, T>, notify: U) -> Self {
+impl Task {
+    pub fn new(future: BoxFuture<'static, ()>, data: UserData) -> Self {
         let future = Mutex::new(future);
-        let notify = Mutex::new(notify);
-        Self { future, notify }
+        Self { future, data }
     }
 
     pub fn poll(self: &Arc<Self>) -> bool {
@@ -66,48 +59,5 @@ where
         } else {
             false
         }
-    }
-
-    pub fn poller(self: &Arc<Self>) -> impl FnMut() -> bool {
-        let cloned_self = self.clone();
-        move || cloned_self.poll()
-    }
-}
-
-#[repr(transparent)]
-pub struct PollerFn<U> {
-    func: U,
-}
-
-impl<U> From<U> for PollerFn<U>
-where
-    U: FnMut() -> bool,
-{
-    fn from(func: U) -> Self {
-        Self { func }
-    }
-}
-
-impl<U> Into<(RawPollFn, RawDropFn, RawUserData)> for PollerFn<U>
-where
-    U: FnMut() -> bool,
-{
-    fn into(self) -> (RawPollFn, RawDropFn, RawUserData) {
-        let poller = Box::into_raw(Box::new(self.func));
-        (Self::poll_fn, Self::drop_fn, poller as RawUserData)
-    }
-}
-
-impl<U> PollerFn<U>
-where
-    U: FnMut() -> bool,
-{
-    fn poll_fn(data: RawUserData) -> bool {
-        let poller = unsafe { &mut *(data as *mut U) };
-        poller()
-    }
-
-    fn drop_fn(data: RawUserData) {
-        let _ = unsafe { Box::from_raw(data as *mut U) };
     }
 }

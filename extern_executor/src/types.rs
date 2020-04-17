@@ -11,9 +11,9 @@ pub use core::pin::Pin;
 
 pub use core::{
     ptr::null_mut,
+    mem::transmute,
     future::Future,
     task::{Context, Poll},
-    mem::MaybeUninit,
 };
 
 #[cfg(not(feature = "spin"))]
