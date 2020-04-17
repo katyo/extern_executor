@@ -11,10 +11,11 @@ cache:
 addons:
   apt:
     packages:
-    - libuv-dev
+    - libuv1-dev
   homebrew:
     packages:
     - libuv
+    update: true
 script:
 - (cd extern_executor && cargo test --features cbindgen)
 - (cd extern_executor && cargo test --no-default-features --features no_std)

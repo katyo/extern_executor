@@ -51,7 +51,7 @@ build-lib:
 	cd ../example_lib && cargo build $(CARGOFLAGS)
 
 $(BINARY): $(OBJECTS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(filter %.o,$^)
+	$(CC) $(CFLAGS) -o $@ $(filter %.o,$^) $(LDFLAGS)
 
 define compile_c
 $(1).o: $(1) build-lib
