@@ -1,12 +1,12 @@
 #include <uv.h>
 #include <rust_async_executor.h>
 
-static void raw_task_wake(RustAsyncExecutorExternTask data) {
+static void task_wake(RustAsyncExecutorExternTask data) {
     uv_async_t* handle = data;
     uv_async_send(handle);
 }
 
-static void raw_task_poll(uv_async_t* handle) {
+static void task_poll(uv_async_t* handle) {
     if (rust_async_executor_poll(handle->data)) {
         printf("task_poll() = true\n");
         // pending
@@ -18,15 +18,15 @@ static void raw_task_poll(uv_async_t* handle) {
     }
 }
 
-static RustAsyncExecutorExternTask raw_task_new(RustAsyncExecutorUserData data) {
+static RustAsyncExecutorExternTask task_new(RustAsyncExecutorUserData data) {
     printf("task_new()\n");
     uv_loop_t* loop = data;
     uv_async_t* handle = malloc(sizeof(uv_async_t));
-    uv_async_init(loop, handle, raw_task_poll);
+    uv_async_init(loop, handle, task_poll);
     return handle;
 }
 
-static void raw_task_run(RustAsyncExecutorExternTask task, RustAsyncExecutorInternTask data) {
+static void task_run(RustAsyncExecutorExternTask task, RustAsyncExecutorInternTask data) {
     printf("task_run()\n");
     uv_async_t* handle = task;
     handle->data = data;
@@ -34,5 +34,5 @@ static void raw_task_run(RustAsyncExecutorExternTask task, RustAsyncExecutorInte
 }
 
 void ffi_init(uv_loop_t *loop) {
-    rust_async_executor_init(raw_task_new, raw_task_run, raw_task_wake, loop);
+    rust_async_executor_init(task_new, task_run, task_wake, loop);
 }
