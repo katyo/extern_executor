@@ -1,0 +1,22 @@
+language: rust
+rust:
+- stable
+- beta
+- nightly
+os:
+- linux
+- osx
+cache:
+  cargo: true
+script:
+- (cd extern_executor && cargo test --features cbindgen)
+- (cd extern_executor && cargo test --no-default-features --features no_std)
+- make -C example_bin
+jobs:
+  allow_failures:
+  - rust: nightly
+  include:
+  - stage: publish
+    script:
+    - (cd extern_executor && cargo publish || true)
+    if: (type = push) && (tag =~ /^\d+\.\d+\.\d+/)
