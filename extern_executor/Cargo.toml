@@ -1,14 +1,23 @@
 [package]
 name = "extern_executor"
+version = "0.1.0"
 description = "Async executor which delegates futures polling to external event-loop."
 keywords = ["async", "future", "executor"]
 categories = ["no-std", "ffi"]
-version = "0.1.0"
 authors = ["K. <kayo@illumium.org>"]
 license = "MIT"
 repository = "https://github.com/katyo/external_executor"
 readme = "README.md"
 edition = "2018"
+
+[badges.travis-ci]
+repository = "katyo/extern_executor"
+
+[badges.is-it-maintained-issue-resolution]
+repository = "katyo/extern_executor"
+
+[badges.is-it-maintained-open-issues]
+repository = "katyo/extern_executor"
 
 [dependencies.futures-task]
 version = "^0.3"
