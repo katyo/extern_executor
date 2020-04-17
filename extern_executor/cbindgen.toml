@@ -9,7 +9,3 @@ prefix = "RustAsyncExecutor"
 
 [enum]
 prefix_with_name = true
-
-#[parse.expand]
-#default_features = true
-#features = ["c", "dart", "logger"]
