@@ -10,7 +10,7 @@ static void delay_cb(void) {
 }
 
 static void read_file_cb(const char *data) {
-    printf("async read_file() end: %lu bytes read\n", strlen(data));
+    printf("async read_file() end: %u bytes read\n", (unsigned int)strlen(data));
 }
 
 int main(void) {

@@ -1,4 +1,4 @@
-BINARY ?= example_bin
+TARGET ?= example_bin
 SOURCES ?= ffi.c main.c
 OBJECTS = $(patsubst %.c,%.c.o,$(SOURCES))
 PROFILE ?= release
@@ -26,9 +26,11 @@ LDFLAGS += -lexample_lib
 
 ifeq ($(OS),Windows_NT)
 BINSFX := .exe
+PATHSEP := ;
 LIB_PATH_VAR := PATH
 else
 BINSFX := $()
+PATHSEP := :
 UNAME := $(shell uname -s)
 ifeq ($(UNAME),Darwin)
 LIB_PATH_VAR := DYLD_FALLBACK_LIBRARY_PATH
@@ -37,10 +39,13 @@ LIB_PATH_VAR := LD_LIBRARY_PATH
 endif
 endif
 
-LIB_PATHS := $(subst $() ,:,$(LIBDIRS))
+LIB_PATHS := $(subst $() ,$(PATHSEP),$(LIBDIRS))
+
+BINARY ?= $(TARGET)$(BINSFX)
 
 run: $(BINARY)
-	$(LIB_PATH_VAR)=$(LIB_PATHS) $(CURDIR)/$<
+	@echo Run example
+	export $(LIB_PATH_VAR)="$(if $($(LIB_PATH_VAR)),$($(LIB_PATH_VAR))$(PATHSEP))$(LIB_PATHS)"; $(CURDIR)/$(BINARY)
 
 build: $(BINARY)
 
