@@ -1,4 +1,4 @@
-use crate::{UserData, BoxedPoll, global};
+use crate::{UserData, BoxedPoll, Box, global};
 
 /// Raw external task handle
 pub type ExternTask = UserData;

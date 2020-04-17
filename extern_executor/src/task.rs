@@ -1,5 +1,5 @@
 use crate::{
-    BoxFuture,
+    Box, BoxFuture,
     WrappedUserData,
     Arc, Mutex, mutex_lock,
     Context, Poll,

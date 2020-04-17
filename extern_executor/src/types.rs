@@ -1,10 +1,16 @@
 ///! widely used types and functions
 
 #[cfg(feature = "no_std")]
-pub use alloc::sync::Arc;
+pub use alloc::{
+    sync::Arc,
+    boxed::Box,
+};
 
 #[cfg(not(feature = "no_std"))]
-pub use std::sync::Arc;
+pub use std::{
+    sync::Arc,
+    boxed::Box,
+};
 
 pub use core::pin::Pin;
 

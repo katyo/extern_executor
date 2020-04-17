@@ -7,7 +7,7 @@ This project aims to provide simple executor which helps to run asynchronous Rus
 
 On a Rust side you should add `extern_executor` as dependency to your `cdylib` crate and use `spawn()` function to run futures, like so:
 
-```rust
+```no_run
 use extern_executor::spawn;
 
 spawn(async {
