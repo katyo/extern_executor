@@ -5,63 +5,56 @@ extern crate alloc;
 
 mod types;
 mod userdata;
-mod executor;
+mod ffi;
+mod task;
 
 pub(crate) use types::*;
 pub(crate) use userdata::*;
-pub use executor::*;
+pub use ffi::*;
+pub use task::*;
 
-pub use futures::FutureExt;
+pub(crate) mod global {
+    use super::{UserData, null_mut};
 
-/// C function which can create new tasks
-pub type RawTaskNewFn = fn() -> RawUserData;
-
-/// C function which can run created tasks
-pub type RawTaskRunFn = fn(RawUserData, RawUserData);
-
-static mut TASK_NEW: RawUserData = null_mut();
-static mut TASK_RUN: RawUserData = null_mut();
-static mut TASK_WAKE: RawUserData = null_mut();
-
-/// Initialize async executor by providing task API calls
-#[no_mangle]
-pub extern fn rust_async_executor_init(task_new: RawTaskNewFn, task_run: RawTaskRunFn, task_wake: RawTaskWakeFn) {
-    unsafe {
-        TASK_NEW = task_new as _;
-        TASK_RUN = task_run as _;
-        TASK_WAKE = task_wake as _;
-    }
-}
-
-/// Task poll function which should be called to resume task
-#[no_mangle]
-pub extern fn rust_async_executor_poll(data: RawUserData) -> bool {
-    let task = unsafe { &*(data as *mut BoxedTask) };
-    let res = task.poll();
-    res
-}
-
-/// Task drop function which should be called to delete task
-#[no_mangle]
-pub extern fn rust_async_executor_drop(data: RawUserData) {
-    let _task = unsafe { Box::from_raw(data as *mut BoxedTask) };
-}
-
-pub(crate) fn wake(data: RawUserData) {
-    let task_wake: RawTaskWakeFn = unsafe { transmute(TASK_WAKE) };
-
-    task_wake(data);
+    pub static mut TASK_NEW: UserData = null_mut();
+    pub static mut TASK_RUN: UserData = null_mut();
+    pub static mut TASK_WAKE: UserData = null_mut();
+    pub static mut TASK_DATA: UserData = null_mut();
 }
 
 /// Spawn task
 ///
 /// Create task for future and run it
 pub fn spawn(future: impl Future + Send + 'static) {
-    let future = Box::pin(future.map(|_| ()));
+    let future = Box::pin(future);
 
-    let task_new: RawTaskNewFn = unsafe { transmute(TASK_NEW) };
-    let task_run: RawTaskRunFn = unsafe { transmute(TASK_RUN) };
+    let task_new: TaskNew = unsafe { transmute(global::TASK_NEW) };
+    let task_run: TaskRun = unsafe { transmute(global::TASK_RUN) };
+    let task_data: ExternData = unsafe { global::TASK_DATA };
 
-    let task = task_new();
-    task_run(task, task_new_raw(future, task));
+    let task = task_new(task_data);
+    task_run(task, task_wrap(future, task));
+}
+
+#[macro_export]
+macro_rules! externs {
+    () => {
+        /// Initialize async executor by providing task API calls
+        #[no_mangle]
+        pub extern "C" fn rust_async_executor_init(task_new: $crate::TaskNew, task_run: $crate::TaskRun, task_wake: $crate::TaskWake, task_data: $crate::ExternData) {
+            $crate::task_init(task_new, task_run, task_wake, task_data);
+        }
+
+        /// Task poll function which should be called to resume task
+        #[no_mangle]
+        pub extern "C" fn rust_async_executor_poll(task: $crate::InternTask) -> bool {
+            $crate::task_poll(task)
+        }
+
+        /// Task drop function which should be called to delete task
+        #[no_mangle]
+        pub extern "C" fn rust_aync_executor_drop(task: $crate::InternTask) {
+            $crate::task_drop(task);
+        }
+    }
 }

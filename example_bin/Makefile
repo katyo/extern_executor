@@ -1,5 +1,5 @@
 BINARY ?= example_bin
-SOURCES ?= main.c
+SOURCES ?= ffi.c main.c
 OBJECTS = $(patsubst %.c,%.c.o,$(SOURCES))
 PROFILE ?= release
 
@@ -47,14 +47,14 @@ build: $(BINARY)
 clean:
 	rm -f *.o $(BINARY)
 
-prepare:
+build-lib:
 	cd ../example_lib && cargo build $(CARGOFLAGS)
 
-$(BINARY): prepare $(OBJECTS)
+$(BINARY): $(OBJECTS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(filter %.o,$^)
 
 define compile_c
-$(1).o: $(1)
+$(1).o: $(1) build-lib
 	$$(CC) $$(CFLAGS) -c -o $$@ $$<
 endef
 

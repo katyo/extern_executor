@@ -10,8 +10,11 @@ repository = "https://github.com/katyo/external_executor"
 readme = "README.md"
 edition = "2018"
 
-[dependencies]
-futures = "^0.3"
+[dependencies.futures-task]
+version = "^0.3"
+default-features = false
+features = ["alloc"]
+optional = true
 
 [dependencies.spin]
 version = "^0.5"
@@ -25,5 +28,6 @@ optional = true
 cbindgen = "^0.14"
 
 [features]
-default = []
+default = ["std"]
+std = ["futures-task"]
 no_std = ["spin", "woke"]

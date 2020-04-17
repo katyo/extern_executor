@@ -13,7 +13,7 @@ use async_std::{
 };
 
 #[no_mangle]
-pub extern fn delay(duration: f32, callback: fn()) {
+pub extern "C" fn delay(duration: f32, callback: fn()) {
     spawn(
         Delay::new(Duration::from_secs_f32(duration))
             .map(move |_| callback())
@@ -21,7 +21,7 @@ pub extern fn delay(duration: f32, callback: fn()) {
 }
 
 #[no_mangle]
-pub extern fn read_file(path: *const c_char, callback: fn(*const c_char)) {
+pub extern "C" fn read_file(path: *const c_char, callback: fn(*const c_char)) {
     let path = unsafe { CStr::from_ptr(path) };
     let path = path.to_str().unwrap();
     spawn(async move {

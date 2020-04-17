@@ -3,3 +3,13 @@ members = [
   "extern_executor",
   "example_lib",
 ]
+
+[profile.release]
+opt-level = "s"
+debug = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = "abort"
+incremental = false
+overflow-checks = false
