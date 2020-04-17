@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <uv.h>
 #include <rust_async_executor.h>
 

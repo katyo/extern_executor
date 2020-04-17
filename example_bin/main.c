@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdio.h>
 #include <uv.h>
 #include <rust_example_lib.h>
 

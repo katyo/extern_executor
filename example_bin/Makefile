@@ -9,7 +9,7 @@ LIBDIRS += ../target/$(PROFILE)
 
 pkgconfig = $(foreach PKGDEP,$(PKGDEPS),$(shell pkg-config $(1) $(PKGDEP)))
 
-CFLAGS += -Wall -Wextra
+CFLAGS += -Wall -Wextra -pedantic
 CFLAGS += $(addprefix -I,$(INCDIRS))
 CFLAGS += $(call pkgconfig,--cflags)
 
