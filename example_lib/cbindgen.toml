@@ -1,0 +1,11 @@
+language = "C"
+cpp_compat = true
+tab_width = 4
+include_guard = "__EXAMPLE_LIB_H__"
+include_version = true
+
+#[export]
+#prefix = ""
+
+[enum]
+prefix_with_name = true
