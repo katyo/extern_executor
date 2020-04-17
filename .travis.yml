@@ -8,6 +8,13 @@ os:
 - osx
 cache:
   cargo: true
+addons:
+  apt:
+    packages:
+    - libuv-dev
+  homebrew:
+    packages:
+    - libuv
 script:
 - (cd extern_executor && cargo test --features cbindgen)
 - (cd extern_executor && cargo test --no-default-features --features no_std)
