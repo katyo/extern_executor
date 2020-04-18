@@ -65,4 +65,3 @@ endef
 
 $(foreach SOURCE,$(SOURCES),$(eval $(call compile_c,$(SOURCE))))
 
-.PHONY: prepare

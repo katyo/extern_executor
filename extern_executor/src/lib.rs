@@ -114,6 +114,9 @@ mod userdata;
 mod task;
 pub mod ffi;
 
+#[cfg(feature = "dart")]
+pub mod dart;
+
 pub(crate) use types::*;
 pub(crate) use userdata::*;
 pub(crate) use task::*;
