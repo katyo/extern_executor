@@ -6,7 +6,7 @@ keywords = ["async", "future", "executor"]
 categories = ["asynchronous", "no-std"]
 authors = ["K. <kayo@illumium.org>"]
 license = "MIT"
-repository = "https://github.com/katyo/external_executor"
+repository = "https://github.com/katyo/extern_executor"
 readme = "README.md"
 edition = "2018"
 
