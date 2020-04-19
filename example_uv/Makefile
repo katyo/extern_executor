@@ -13,7 +13,6 @@ CFLAGS += -Wall -Wextra -pedantic
 CFLAGS += $(addprefix -I,$(INCDIRS))
 CFLAGS += $(call pkgconfig,--cflags)
 
-export LIBUV_SYS_USE_SYSTEM=1
 CARGOFLAGS += --features uv
 
 ifeq ($(PROFILE),release)

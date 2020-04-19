@@ -42,7 +42,7 @@ mod libuv_sys {
 
     #[cfg(windows)]
     struct uv_async_priv_t {
-        async_req: uv_req_s,
+        async_req: uv_req_t,
         async_cb: *mut c_void,
         async_sent: c_char,
     }

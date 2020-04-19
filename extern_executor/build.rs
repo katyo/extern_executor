@@ -1,4 +1,13 @@
 fn main() {
+    #[cfg(feature = "uv")]
+    {
+        let pkgconfig = pkg_config::Config::new();
+
+        if pkgconfig.probe("libuv").is_err() {
+            println!("cargo:rustc-link-lib=uv");
+        }
+    }
+
     #[cfg(feature = "cbindgen")]
     {
         use std::{env::var, path::Path};
@@ -41,7 +50,6 @@ fn main() {
                 config.include_guard = header_guard.into();
                 config.export.exclude.extend(config.export.include.iter().filter(|name| !sym_filter(&name)).cloned());
                 config.export.include = Vec::default();
-                //config.export.exclude.extend(export_excludes.iter().map(|exclude| exclude.to_string()));
 
                 cbindgen::Builder::new()
                     .with_crate(source_dir)
@@ -51,5 +59,7 @@ fn main() {
                     .write_to_file(header_path);
             }
         }
+
+        println!("cargo:rerun-if-changed=cbindgen.toml");
     }
 }
