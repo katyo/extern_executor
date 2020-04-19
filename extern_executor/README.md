@@ -89,8 +89,8 @@ In second case generated header will be available at `target/$PROFILE/include` d
 
 ## Built-in event-loop drivers
 
-To simplify usage of tis crate with some widely used event loops the built-in drivers was introduces.
-To use driver you can enable corresponding feature. Currently supported next drivers:
+To simplify setup for some widely used event loops the built-in drivers was introduced.
+To use driver you should enable corresponding feature. Currently supported next drivers:
 
 - __uv__ built-in _libuv_ event loop integration (see [example_uv](http://github.com/katyo/extern_executor/tree/master/example_uv))
 - __dart__ built-in _dart-lang_ event loop integration (see [example_dart](http://github.com/katyo/extern_executor/tree/master/example_uv))
