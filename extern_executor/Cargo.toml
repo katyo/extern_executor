@@ -1,6 +1,6 @@
 [package]
 name = "extern_executor"
-version = "0.1.0"
+version = "0.1.2"
 description = "Async executor which delegates futures polling to external event-loop."
 keywords = ["async", "future", "executor"]
 categories = ["asynchronous", "no-std"]
