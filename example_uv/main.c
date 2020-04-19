@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <uv.h>
-#include <rust_async_executor.h>
+#include <rust_async_executor_uv.h>
 #include <rust_example_lib.h>
 
 static void delay_cb(void* userdata) {

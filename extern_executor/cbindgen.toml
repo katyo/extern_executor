@@ -1,11 +1,19 @@
 language = "C"
 cpp_compat = true
 tab_width = 4
-include_guard = "__RUST_ASYNC_EXECUTOR_H__"
 include_version = true
 
 [export]
 prefix = "RustAsyncExecutor"
+include = [
+  "rust_async_executor_init",
+  "rust_async_executor_poll",
+  "rust_async_executor_drop",
+  "rust_async_executor_uv_init",
+  "rust_async_executor_dart_drop",
+  "rust_async_executor_dart_init",
+  "rust_async_executor_dart_poll",
+]
 exclude = [
   "uv_async_init",
   "uv_async_send",

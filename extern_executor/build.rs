@@ -19,22 +19,37 @@ fn main() {
             .expect("Unfortunately missing 'CARGO_MANIFEST_DIR' environment variable.");
         let source_dir = Path::new(&source_dir);
 
-        let header_file = "rust_async_executor.h";
-
         let config_path = source_dir.join("cbindgen.toml");
-        let header_path = target_dir.join("include").join(&header_file);
-
         let config = cbindgen::Config::from_file(config_path)
             .expect("Unable to read cbindgen config");
 
-        std::fs::create_dir_all(header_path.parent().unwrap())
-            .expect("Unable to create header directory");
+        let header_dir = target_dir.join("include");
 
-        cbindgen::Builder::new()
-            .with_crate(source_dir)
-            .with_config(config)
-            .generate()
-            .expect("Unable to generate bindings")
-            .write_to_file(header_path);
+        std::fs::create_dir_all(&header_dir)
+            .expect("Unable to create headers directory");
+
+        for (needed, header_file, sym_filter) in &[
+            (true, "rust_async_executor.h", (|name| !name.contains("_dart_") && !name.contains("_uv_")) as fn(&str) -> bool),
+            (cfg!(feature = "uv"), "rust_async_executor_uv.h", |name| name.contains("_uv_")),
+            (cfg!(feature = "dart"), "rust_async_executor_dart.h", |name| name.contains("_dart_"))
+        ] {
+            if *needed {
+                let header_path = header_dir.join(&header_file);
+                let header_guard = format!("__{}__", header_file.replace('.', "_").to_uppercase());
+                let mut config = config.clone();
+
+                config.include_guard = header_guard.into();
+                config.export.exclude.extend(config.export.include.iter().filter(|name| !sym_filter(&name)).cloned());
+                config.export.include = Vec::default();
+                //config.export.exclude.extend(export_excludes.iter().map(|exclude| exclude.to_string()));
+
+                cbindgen::Builder::new()
+                    .with_crate(source_dir)
+                    .with_config(config)
+                    .generate()
+                    .expect("Unable to generate bindings")
+                    .write_to_file(header_path);
+            }
+        }
     }
 }
