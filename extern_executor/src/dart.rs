@@ -34,17 +34,18 @@ pub(crate) mod global {
     pub static mut TASK_POST: UserData = null_mut();
 }
 
+#[repr(transparent)]
 struct DartTask {
     data: InternTask,
 }
 
-fn task_new(_data: ExternData) -> ExternTask {
+extern "C" fn task_new(_data: ExternData) -> ExternTask {
     Box::into_raw(Box::new(DartTask {
         data: null_mut(),
     })) as _
 }
 
-fn task_run(task: ExternTask, data: InternTask) {
+extern "C" fn task_run(task: ExternTask, data: InternTask) {
     {
         let mut task = unsafe { &mut *(task as *mut DartTask) };
         task.data = data;
@@ -74,7 +75,7 @@ pub extern "C" fn task_drop(task: ExternTask) {
     ffi::task_drop(task.data);
 }
 
-fn task_wake(task: ExternTask) {
+extern "C" fn task_wake(task: ExternTask) {
     use global::*;
 
     let wake_port = unsafe { WAKE_PORT };
@@ -94,7 +95,7 @@ fn task_wake(task: ExternTask) {
 ///
 /// On a Dart side you should continuously read channel to get task addresses which needs to be polled.
 #[export_name = "rust_async_executor_dart_init"]
-pub extern "C" fn loop_dart_init(wake_port: DartPort, task_post: DartPostCObject) {
+pub extern "C" fn loop_init(wake_port: DartPort, task_post: DartPostCObject) {
     use global::*;
 
     unsafe {
