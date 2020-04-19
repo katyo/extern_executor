@@ -31,7 +31,7 @@ pub type TaskRun = fn(ExternTask, InternTask);
 pub type TaskWake = fn(ExternTask);
 
 /// Initialize async executor by providing task API calls
-#[cfg_attr(not(feature = "driver"), export_name = "rust_async_executor_init")]
+#[export_name = "rust_async_executor_init"]
 pub extern "C" fn loop_init(task_new: TaskNew, task_run: TaskRun, task_wake: TaskWake, task_data: ExternData) {
     use global::*;
 
@@ -44,14 +44,14 @@ pub extern "C" fn loop_init(task_new: TaskNew, task_run: TaskRun, task_wake: Tas
 }
 
 /// Task poll function which should be called to resume task
-#[cfg_attr(not(feature = "driver"), export_name = "rust_async_executor_poll")]
+#[export_name = "rust_async_executor_poll"]
 pub extern "C" fn task_poll(data: InternTask) -> bool {
     let poll = unsafe { &mut *(data as *mut BoxedPoll) };
     poll()
 }
 
 /// Task drop function which should be called to delete task
-#[cfg_attr(not(feature = "driver"), export_name = "rust_async_executor_drop")]
+#[export_name = "rust_async_executor_drop"]
 pub extern "C" fn task_drop(data: InternTask) {
     let _poll = unsafe { Box::from_raw(data as *mut BoxedPoll) };
 }
