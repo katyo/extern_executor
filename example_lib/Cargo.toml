@@ -27,4 +27,5 @@ features = ["cbindgen"]
 cbindgen = "^0.14"
 
 [features]
+uv = ["extern_executor/uv"]
 dart = ["extern_executor/dart"]

@@ -12,23 +12,23 @@ pub type InternTask = UserData;
 /// Raw poll function
 ///
 /// This function must be called to poll future on each wake event
-pub type TaskPoll = fn(InternTask) -> bool;
+pub type TaskPoll = extern "C" fn(InternTask) -> bool;
 
 /// Raw C drop function
 ///
 /// This function must be called to cleanup either pending or completed future
-pub type TaskDrop = fn(InternTask);
+pub type TaskDrop = extern "C" fn(InternTask);
 
 /// C function which can create new tasks
-pub type TaskNew = fn(ExternData) -> ExternTask;
+pub type TaskNew = extern "C" fn(ExternData) -> ExternTask;
 
 /// C function which can run created tasks
-pub type TaskRun = fn(ExternTask, InternTask);
+pub type TaskRun = extern "C" fn(ExternTask, InternTask);
 
 /// C function which can wake created task
 ///
 /// This function will be called when pending future need to be polled again
-pub type TaskWake = fn(ExternTask);
+pub type TaskWake = extern "C" fn(ExternTask);
 
 /// Initialize async executor by providing task API calls
 #[export_name = "rust_async_executor_init"]

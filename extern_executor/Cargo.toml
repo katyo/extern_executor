@@ -33,10 +33,6 @@ optional = true
 version = "^0.0"
 optional = true
 
-[dependencies.libuv-sys2]
-version = "^1.36"
-optional = true
-
 [dependencies.dart-sys]
 version = "^2.0"
 optional = true
@@ -49,6 +45,6 @@ optional = true
 default = ["std"]
 std = ["futures-task"]
 no_std = ["spin", "woke"]
-uv = ["libuv-sys2", "driver"]
+uv = ["driver"]
 dart = ["dart-sys", "driver"]
 driver = []

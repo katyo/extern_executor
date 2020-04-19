@@ -114,6 +114,9 @@ mod userdata;
 mod task;
 pub mod ffi;
 
+#[cfg(feature = "uv")]
+pub mod uv;
+
 #[cfg(feature = "dart")]
 pub mod dart;
 

@@ -6,6 +6,11 @@ include_version = true
 
 [export]
 prefix = "RustAsyncExecutor"
+exclude = [
+  "uv_async_init",
+  "uv_async_send",
+  "uv_close",
+]
 
 [enum]
 prefix_with_name = true
