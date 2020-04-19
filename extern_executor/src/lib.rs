@@ -87,6 +87,14 @@ There are two options how you can get it:
 
 In second case generated header will be available at `target/$PROFILE/include` directory.
 
+## Built-in event-loop drivers
+
+To simplify usage of tis crate with some widely used event loops the built-in drivers was introduces.
+To use driver you can enable corresponding feature. Currently supported next drivers:
+
+- __uv__ built-in _libuv_ event loop integration (see [example_uv](http://github.com/katyo/extern_executor/tree/master/example_uv))
+- __dart__ built-in _dart-lang_ event loop integration (see [example_dart](http://github.com/katyo/extern_executor/tree/master/example_uv))
+
 ## Linking issues
 
 Rust currently have an issues related to re-exporting of symbols from crate's dependencies (#[2771](https://github.com/rust-lang/rfcs/issues/2771)).
