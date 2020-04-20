@@ -12,19 +12,43 @@ main() async {
 
   executor.start();
 
-  print("async delay() start");
+  List<Future> tasks = [];
 
-  final delayPend = exampleLib.delay(2.5).then((res) {
-      print("async delay() end");
-  });
+  for (var secs in [2.5]) {
+    print("async delay(${secs}) start");
 
-  print("async read_file() start");
+    tasks.add(exampleLib.delay(2.5).then((res) {
+          print("async delay(${secs}) end");
+    }));
+  }
 
-  final readFilePend = exampleLib.readFile("main.dart").then((data) {
-      print("async read_file() end. Read ${data.length} chars");
-  });
+  for (var path in ['main.dart', 'other.dart']) {
+    print("async read_file('${path}') start");
 
-  await Future.wait([delayPend, readFilePend]);
+    tasks.add(exampleLib.readFile(path).then(
+        (data) {
+          print("async read_file('${path}') ok: read ${data.length} chars");
+        },
+        onError: (error) {
+          print("async read_file('${path}') error: ${error}");
+        }
+    ));
+  }
+
+  for (var name in ['illumium.org', 'nihil.illumium.org']) {
+    print("async ns_lookup('${name}') start");
+
+    tasks.add(exampleLib.nsLookup(name).then(
+        (addr) {
+          print("async ns_lookup('${name}') ok: ${addr}");
+        },
+        onError: (error) {
+          print("async ns_lookup('${name}') error: ${error}");
+        }
+    ));
+  }
+
+  await Future.wait(tasks);
 
   executor.stop();
 }

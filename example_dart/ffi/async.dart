@@ -14,7 +14,7 @@ class Dispatcher {
   HashMap<int, Completer> _pending = HashMap();
 
   Wrapper<T> create<T>() {
-    final completer = Completer();
+    final completer = Completer<T>();
 
     _lastId += 1;
     _pending[_lastId] = completer;
@@ -22,16 +22,16 @@ class Dispatcher {
     return Wrapper(Pointer.fromAddress(_lastId), completer.future);
   }
 
-  void notify<T>(Pointer<Void> id, T value) {
-    final completer = _pending[id.address];
+  void complete<T>(Pointer<Void> id, T value) {
+    final Completer<T> completer = _pending.remove(id.address);
 
     completer.complete(value);
   }
 
-  void complete<T>(Pointer<Void> id, T value) {
+  void failure<E>(Pointer<Void> id, E error) {
     final completer = _pending.remove(id.address);
 
-    completer.complete(value);
+    completer.completeError(error);
   }
 }
 

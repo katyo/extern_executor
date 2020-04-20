@@ -6,15 +6,47 @@
 void ffi_init(uv_loop_t* loop);
 
 static void delay_cb(void* userdata) {
-    (void)userdata;
+    const char* secs = userdata;
 
-    printf("async delay() end\n");
+    printf("async delay(%s) end\n", secs);
 }
 
-static void read_file_cb(const char* data, void* userdata) {
-    (void)userdata;
+static void read_file_cb(char* data, char* error, void* userdata) {
+    const char* name = userdata;
 
-    printf("async read_file() end: %u bytes read\n", (unsigned int)strlen(data));
+    if (data) {
+        unsigned length = strlen(data);
+        printf("async read_file('%s') ok: %u bytes\n", name, length);
+        free(data);
+    } else {
+        printf("async read_file('%s') error: %s\n", name, error);
+        free(error);
+    }
+}
+
+static void ns_lookup_cb(IPAddr* addr, char* error, void* userdata) {
+    const char* name = userdata;
+
+    if (addr) {
+        printf("async ns_lookup('%s') ok: ", name);
+        switch (addr->kind) {
+        case 4: {
+            unsigned char* b = addr->data.v4;
+            printf("%u.%u.%u.%u\n",
+                   (unsigned)b[0], (unsigned)b[1], (unsigned)b[2], (unsigned)b[3]);
+        } break;
+        case 6: {
+            unsigned short* b = addr->data.v6;
+            printf("%X:%X:%X:%X:%X:%X:%X:%X\n",
+                   (unsigned)b[0], (unsigned)b[1], (unsigned)b[2], (unsigned)b[3],
+                   (unsigned)b[4], (unsigned)b[5], (unsigned)b[6], (unsigned)b[7]);
+        } break;
+        }
+        free(addr);
+    } else {
+        printf("async ns_lookup('%s') error: %s\n", name, error);
+        free(error);
+    }
 }
 
 int main(void) {
@@ -23,11 +55,20 @@ int main(void) {
     uv_loop_init(&loop);
     ffi_init(&loop);
 
-    printf("async delay() start\n");
-    delay(2.5, delay_cb, NULL);
+    printf("async delay(2.5) start\n");
+    delay(2.5, delay_cb, "2.5");
 
-    printf("async read_file() start\n");
-    read_file("main.c", read_file_cb, NULL);
+    printf("async read_file('main.c') start\n");
+    read_file("main.c", read_file_cb, "main.c");
+
+    printf("async read_file('other.c') start\n");
+    read_file("other.c", read_file_cb, "other.c");
+
+    printf("async ns_lookup('illumium.org') start\n");
+    ns_lookup("illumium.org", ns_lookup_cb, "illumium.org");
+
+    printf("async ns_lookup('nihil.illumium.org') start\n");
+    ns_lookup("nihil.illumium.org", ns_lookup_cb, "nihil.illumium.org");
 
     uv_run(&loop, UV_RUN_DEFAULT);
     uv_loop_close(&loop);
