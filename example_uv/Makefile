@@ -22,9 +22,9 @@ else
 CFLAGS += -O1 -g
 endif
 
-LDFLAGS += $(call pkgconfig,--libs)
 LDFLAGS += $(addprefix -L,$(LIBDIRS))
 LDFLAGS += -lexample_lib
+LDFLAGS += $(call pkgconfig,--libs)
 
 ifeq ($(OS),Windows_NT)
 BINSFX := .exe

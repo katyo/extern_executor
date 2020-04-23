@@ -15,10 +15,10 @@ static void read_file_cb(char* data, char* error, void* userdata) {
 
     if (data) {
         printf("async read_file('%s') ok: %u bytes\n", name, (unsigned int)strlen(data));
-        free(data);
+        free_cstr(data);
     } else {
         printf("async read_file('%s') error: %s\n", name, error);
-        free(error);
+        free_cstr(error);
     }
 }
 
@@ -40,10 +40,10 @@ static void ns_lookup_cb(IPAddr* addr, char* error, void* userdata) {
                    (unsigned)b[4], (unsigned)b[5], (unsigned)b[6], (unsigned)b[7]);
         } break;
         }
-        free(addr);
+        free_ipaddr(addr);
     } else {
         printf("async ns_lookup('%s') error: %s\n", name, error);
-        free(error);
+        free_cstr(error);
     }
 }
 

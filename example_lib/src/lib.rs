@@ -136,4 +136,17 @@ pub mod ns_lookup {
 
         response.iter().next().ok_or_else(|| "No A or AAAA reconds found".to_string())
     }
+
+    #[no_mangle]
+    pub extern "C" fn free_ipaddr(data: *mut IPAddr) {
+        let _ = unsafe { Box::from_raw(data) };
+    }
+}
+
+#[cfg(any(feature = "read-file", feature = "ns-lookup"))]
+#[no_mangle]
+pub extern "C" fn free_cstr(data: *mut c_char) {
+    use std::ffi::CString;
+
+    let _ = unsafe { CString::from_raw(data) };
 }

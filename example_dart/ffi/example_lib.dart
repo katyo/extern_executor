@@ -69,6 +69,12 @@ typedef _rustNsLookupCb = Void Function(Pointer<IPAddr> addr, Pointer<Utf8> erro
 typedef _rustNsLookup = Void Function(Pointer<Utf8> domain, Pointer<NativeFunction<_rustNsLookupCb>> callback, Pointer<Void> userdata);
 typedef _RustNsLookup = void Function(Pointer<Utf8> domain, Pointer<NativeFunction<_rustNsLookupCb>> callback, Pointer<Void> userdata);
 
+typedef _rustFreeIPAddr = Void Function(Pointer<IPAddr> data);
+typedef _RustFreeIPAddr = void Function(Pointer<IPAddr> data);
+
+typedef _rustFreeCStr = Void Function(Pointer<Utf8> data);
+typedef _RustFreeCStr = void Function(Pointer<Utf8> data);
+
 class ExampleLib {
   final Pointer<NativeFunction<_rustDelayCb>> _delayCb;
   final _RustDelay _delay;
@@ -76,6 +82,8 @@ class ExampleLib {
   final _RustReadFile _readFile;
   final Pointer<NativeFunction<_rustNsLookupCb>> _nsLookupCb;
   final _RustNsLookup _nsLookup;
+  final _RustFreeIPAddr _freeIPAddr;
+  final _RustFreeCStr _freeCStr;
 
   ExampleLib(DynamicLibrary dylib)
   : _delayCb = Pointer.fromFunction(_delayCb_)
@@ -84,14 +92,18 @@ class ExampleLib {
   , _readFile = dylib.lookup<NativeFunction<_rustReadFile>>('read_file').asFunction()
   , _nsLookupCb = Pointer.fromFunction(_nsLookupCb_)
   , _nsLookup = dylib.lookup<NativeFunction<_rustNsLookup>>('ns_lookup').asFunction()
+  , _freeIPAddr = dylib.lookup<NativeFunction<_rustFreeIPAddr>>('free_ipaddr').asFunction()
+  , _freeCStr = dylib.lookup<NativeFunction<_rustFreeCStr>>('free_cstr').asFunction()
   {}
 
   static void _delayCb_(Pointer<Void> taskId) {
-    asyncDispatcher.complete(taskId, null);
+    asyncDispatcher.complete(taskId, (ExampleLib lib) {
+        return null;
+    });
   }
 
   Future<void> delay(double duration) {
-    final task = asyncDispatcher.create<Null>();
+    final Task<Null> task = asyncDispatcher.initiate(this);
 
     _delay(duration, _delayCb, task.id);
 
@@ -99,21 +111,23 @@ class ExampleLib {
   }
 
   static void _readFileCb_(Pointer<Utf8> rawData, Pointer<Utf8> rawError, Pointer<Void> taskId) {
-    if (rawData != nullptr) {
-      final data = Utf8.fromUtf8(rawData);
-      free(rawData);
+    asyncDispatcher.complete(taskId, (ExampleLib lib) {
+        if (rawData != nullptr) {
+          final data = Utf8.fromUtf8(rawData);
+          lib._freeCStr(rawData);
 
-      asyncDispatcher.complete(taskId, data);
-    } else {
-      final error = Utf8.fromUtf8(rawError);
-      free(rawError);
+          return data;
+        } else {
+          final error = Utf8.fromUtf8(rawError);
+          lib._freeCStr(rawError);
 
-      asyncDispatcher.failure(taskId, error);
-    }
+          throw error;
+        }
+    });
   }
 
   Future<String> readFile(String path) async {
-    final task = asyncDispatcher.create<String>();
+    final Task<String> task = asyncDispatcher.initiate(this);
 
     final rawPath = Utf8.toUtf8(path);
 
@@ -127,21 +141,23 @@ class ExampleLib {
   }
 
   static void _nsLookupCb_(Pointer<IPAddr> rawAddr, Pointer<Utf8> rawError, Pointer<Void> taskId) {
-    if (rawAddr != nullptr) {
-      final addr = IpAddr.from(rawAddr.ref);
-      free(rawAddr);
+    asyncDispatcher.complete(taskId, (ExampleLib lib) {
+        if (rawAddr != nullptr) {
+          final addr = IpAddr.from(rawAddr.ref);
+          lib._freeIPAddr(rawAddr);
 
-      asyncDispatcher.complete(taskId, addr);
-    } else {
-      final error = Utf8.fromUtf8(rawError);
-      free(rawError);
+          return addr;
+        } else {
+          final error = Utf8.fromUtf8(rawError);
+          lib._freeCStr(rawError);
 
-      asyncDispatcher.failure(taskId, error);
-    }
+          throw error;
+        }
+    });
   }
 
   Future<IpAddr> nsLookup(String domain) async {
-    final task = asyncDispatcher.create<IpAddr>();
+    final Task<IpAddr> task = asyncDispatcher.initiate(this);
 
     final rawDomain = Utf8.toUtf8(domain);
 

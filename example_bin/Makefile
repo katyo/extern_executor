@@ -20,9 +20,9 @@ else
 CFLAGS += -O1 -g
 endif
 
-LDFLAGS += $(call pkgconfig,--libs)
 LDFLAGS += $(addprefix -L,$(LIBDIRS))
 LDFLAGS += -lexample_lib
+LDFLAGS += $(call pkgconfig,--libs)
 
 ifeq ($(OS),Windows_NT)
 BINSFX := .exe
@@ -64,4 +64,3 @@ $(1).o: $(1) build-lib
 endef
 
 $(foreach SOURCE,$(SOURCES),$(eval $(call compile_c,$(SOURCE))))
-

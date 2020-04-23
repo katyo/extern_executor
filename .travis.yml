@@ -55,7 +55,7 @@ script:
 - (cd extern_executor && cargo test --features cbindgen)
 - (cd extern_executor && cargo test --no-default-features --features no_std)
 - (cd example_bin && $MAKE)
-- if [ "$TRAVIS_OS_NAME" != "windows" ]; then (cd example_uv && $MAKE); fi
+- (cd example_uv && $MAKE)
 jobs:
   allow_failures:
   - rust: nightly

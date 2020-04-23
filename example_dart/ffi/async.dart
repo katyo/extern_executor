@@ -2,36 +2,45 @@ import 'dart:async';
 import 'dart:ffi';
 import 'dart:collection';
 
-class Wrapper<T> {
+class Task<T> {
   final Pointer<Void> id;
   final Future<T> future;
 
-  Wrapper(this.id, this.future) {}
+  Task(this.id, this.future) {}
+}
+
+class _TaskData<T, X> {
+  final Completer<T> completer;
+  final X context;
+
+  _TaskData(this.completer, [this.context]) {}
 }
 
 class Dispatcher {
   int _lastId = 0;
-  HashMap<int, Completer> _pending = HashMap();
+  HashMap<int, _TaskData<dynamic, dynamic>> _pending = HashMap();
 
-  Wrapper<T> create<T>() {
+  Task<T> initiate<T, X>(X context) {
     final completer = Completer<T>();
 
     _lastId += 1;
-    _pending[_lastId] = completer;
+    _pending[_lastId] = _TaskData<T, X>(completer, context);
 
-    return Wrapper(Pointer.fromAddress(_lastId), completer.future);
+    return Task(Pointer.fromAddress(_lastId), completer.future);
   }
 
-  void complete<T>(Pointer<Void> id, T value) {
-    final Completer<T> completer = _pending.remove(id.address);
+  void complete<T, X>(Pointer<Void> id, T Function(X context) func) {
+    final _TaskData<T, X> task = _pending.remove(id.address);
+    T val;
 
-    completer.complete(value);
-  }
+    try {
+      val = func(task.context);
+    } catch (err) {
+      task.completer.completeError(err);
+      return;
+    }
 
-  void failure<E>(Pointer<Void> id, E error) {
-    final completer = _pending.remove(id.address);
-
-    completer.completeError(error);
+    task.completer.complete(val);
   }
 }
 
