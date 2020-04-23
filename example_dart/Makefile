@@ -26,11 +26,22 @@ LIB_PATH_VAR := LD_LIBRARY_PATH
 endif
 endif
 
+BINARY := main$(BINSFX)
 LIB_PATHS := $(subst $() ,$(PATHSEP),$(LIBDIRS))
 
 run: prepare build-lib
 	@echo Run example
-	export $(LIB_PATH_VAR)="$(if $($(LIB_PATH_VAR)),$($(LIB_PATH_VAR))$(PATHSEP))$(LIB_PATHS)"; $(DART) $(CURDIR)/$(SOURCE)
+	$(LIB_PATH_VAR)="$(if $($(LIB_PATH_VAR)),$($(LIB_PATH_VAR))$(PATHSEP))$(LIB_PATHS)" $(DART) $(CURDIR)/$(SOURCE)
+
+run-aot: $(BINARY) build-lib
+	@echo Run aot example
+	$(LIB_PATH_VAR)="$(if $($(LIB_PATH_VAR)),$($(LIB_PATH_VAR))$(PATHSEP))$(LIB_PATHS)" $(CURDIR)/$(BINARY)
+
+$(BINARY): prepare
+	dart2native -o $@ $(SOURCE)
+
+clean:
+	rm -f $(BINARY)
 
 prepare:
 	pub get

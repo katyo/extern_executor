@@ -45,7 +45,7 @@ BINARY ?= $(TARGET)$(BINSFX)
 
 run: $(BINARY)
 	@echo Run example
-	export $(LIB_PATH_VAR)="$(if $($(LIB_PATH_VAR)),$($(LIB_PATH_VAR))$(PATHSEP))$(LIB_PATHS)"; $(CURDIR)/$(BINARY)
+	$(LIB_PATH_VAR)="$(if $($(LIB_PATH_VAR)),$($(LIB_PATH_VAR))$(PATHSEP))$(LIB_PATHS)" $(CURDIR)/$(BINARY)
 
 build: $(BINARY)
 
