@@ -1,11 +1,11 @@
 #[cfg(any(feature = "delay", feature = "read-file", feature = "ns-lookup"))]
-use core::ffi::c_void;
+use {
+    core::ffi::c_void,
+    extern_executor::spawn,
+};
 
 #[cfg(any(feature = "read-file", feature = "ns-lookup"))]
 use std::os::raw::c_char;
-
-#[cfg(any(feature = "delay", feature = "read-file", feature = "ns-lookup"))]
-use extern_executor::spawn;
 
 // Wrapped used data pointer for Rust
 #[cfg(any(feature = "delay", feature = "read-file", feature = "ns-lookup"))]
@@ -17,14 +17,36 @@ pub struct UserData(*mut c_void);
 #[cfg(any(feature = "delay", feature = "read-file", feature = "ns-lookup"))]
 unsafe impl Send for UserData {}
 
+#[cfg(any(feature = "tokio-delay", feature = "tokio-read-file", feature = "tokio-ns-lookup"))]
+pub fn with_tokio_reactor<T>(f: impl FnOnce() -> T) -> T {
+    use std::sync::{Once, Arc};
+
+    static ONCE: Once = Once::new();
+    static mut RUNTIME: *const Arc<tokio::runtime::Runtime> = std::ptr::null_mut();
+
+    ONCE.call_once(|| {
+        unsafe { RUNTIME = Box::into_raw(Box::new(Arc::new(tokio::runtime::Runtime::new().unwrap()))) };
+    });
+
+    let runtime = unsafe { &*RUNTIME };
+    runtime.enter(f)
+}
+
 #[cfg(feature = "delay")]
 #[no_mangle]
 pub extern "C" fn delay(duration: f32, callback: fn(UserData), userdata: UserData) {
-    use std::time::Duration;
-    use futures_timer::Delay;
-
     spawn(async move {
-        Delay::new(Duration::from_secs_f32(duration)).await;
+        let duration = std::time::Duration::from_secs_f32(duration);
+
+        #[cfg(feature = "futures-delay")]
+        futures_timer::Delay::new(duration).await;
+
+        #[cfg(feature = "async-std-delay")]
+        async_std::task::sleep(duration).await;
+
+        #[cfg(feature = "tokio-delay")]
+        with_tokio_reactor(|| tokio::time::delay_for(duration)).await;
+
         callback(userdata);
     });
 }
@@ -33,7 +55,6 @@ pub extern "C" fn delay(duration: f32, callback: fn(UserData), userdata: UserDat
 #[no_mangle]
 pub extern "C" fn read_file(path: *const c_char, callback: fn(*mut c_char, *mut c_char, UserData), userdata: UserData) {
     use std::{ptr::null_mut, ffi::{CStr, CString}};
-    use async_std::{prelude::*, fs::File};
 
     let path = unsafe { CStr::from_ptr(path) };
     spawn(async move {
@@ -58,8 +79,20 @@ pub extern "C" fn read_file(path: *const c_char, callback: fn(*mut c_char, *mut 
     async fn _read_file(path: &str) -> Result<String, String> {
         use std::path::Path;
 
+        #[cfg(feature = "async-std-read-file")]
+        use async_std::{prelude::*, fs::File};
+
+        #[cfg(feature = "tokio-read-file")]
+        use tokio::{prelude::*, fs::File};
+
         let path = Path::new(path);
+
+        #[cfg(feature = "async-std-read-file")]
         let mut file = File::open(path).await.map_err(|e| e.to_string())?;
+
+        #[cfg(feature = "tokio-read-file")]
+        let mut file = with_tokio_reactor(|| { File::open(path) }).await.map_err(|e| e.to_string())?;
+
         let mut data = String::new();
         file.read_to_string(&mut data).await.map_err(|e| e.to_string())?;
         Ok(data)
@@ -125,16 +158,27 @@ pub mod ns_lookup {
     }
 
     async fn _ns_lookup(domain: &str) -> Result<IpAddr, String> {
-        use async_std_resolver::{resolver, config};
+        #[cfg(feature = "async-std-ns-lookup")]
+        {
+            use async_std_resolver::{resolver, config};
 
-        let resolver = resolver(
-            config::ResolverConfig::default(),
-            config::ResolverOpts::default(),
-        ).await.map_err(|e| e.to_string())?;
+            let resolver = resolver(
+                config::ResolverConfig::default(),
+                config::ResolverOpts::default(),
+            ).await.map_err(|e| e.to_string())?;
 
-        let response = resolver.lookup_ip(domain).await.map_err(|e| e.to_string())?;
+            let response = resolver.lookup_ip(domain).await.map_err(|e| e.to_string())?;
 
-        response.iter().next().ok_or_else(|| "No A or AAAA reconds found".to_string())
+            response.iter().next().ok_or_else(|| "No A or AAAA reconds found".to_string())
+        }
+
+        #[cfg(feature = "tokio-ns-lookup")]
+        {
+            let mut response = with_tokio_reactor(|| tokio::net::lookup_host(format!("{}:0", domain)))
+                .await.map_err(|e| e.to_string())?;
+
+            response.next().map(|addr| addr.ip()).ok_or_else(|| "No A or AAAA reconds found".to_string())
+        }
     }
 
     #[no_mangle]

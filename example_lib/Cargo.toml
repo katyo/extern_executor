@@ -24,6 +24,10 @@ optional = true
 version = "^0.19"
 optional = true
 
+[dependencies.tokio]
+version = "^0.2"
+optional = true
+
 [dependencies.extern_executor]
 version = "^0.1"
 path = "../extern_executor"
@@ -33,11 +37,28 @@ features = ["cbindgen"]
 cbindgen = "^0.14"
 
 [features]
-default = ["delay", "read-file", "ns-lookup"]
+default = ["futures-delay", "async-std-read-file", "async-std-ns-lookup"]
+#default = ["futures-default"]
+#default = ["async-std-default"]
+#default = ["tokio-default"]
+
+futures-default = ["futures-delay"]
+async-std-default = ["async-std-delay", "async-std-read-file", "async-std-ns-lookup"]
+tokio-default = ["tokio-delay", "tokio-read-file", "tokio-ns-lookup"]
 
 uv = ["extern_executor/uv"]
 dart = ["extern_executor/dart"]
 
-delay = ["futures-timer"]
-read-file = ["async-std"]
-ns-lookup = ["async-std", "async-std-resolver"]
+delay = []
+read-file = []
+ns-lookup = []
+
+futures-delay = ["futures-timer", "delay"]
+
+async-std-delay = ["async-std", "delay"]
+async-std-read-file = ["async-std", "read-file"]
+async-std-ns-lookup = ["async-std", "async-std-resolver", "ns-lookup"]
+
+tokio-delay = ["tokio", "tokio/time", "delay"]
+tokio-read-file = ["tokio", "tokio/fs", "read-file"]
+tokio-ns-lookup = ["tokio", "tokio/dns", "ns-lookup"]
