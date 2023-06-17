@@ -110,10 +110,13 @@ pub struct UvLoop;
 
 extern "C" fn task_new(data: ExternData) -> ExternTask {
     let uv_loop = data as *mut uv_loop_t;
-    let handle: uv_async_t = unsafe { MaybeUninit::uninit().assume_init() };
+    #[allow(invalid_value)]
+    let handle = unsafe { MaybeUninit::<uv_async_t>::uninit().assume_init() };
 
-    let handle = Box::into_raw(Box::new(handle)) as _;
+    let handle = Box::into_raw(Box::new(handle));
     unsafe { uv_async_init(uv_loop, handle, task_poll) };
+
+    //let handle = Box::into_raw(Box::new(unsafe { handle.assume_init() }));
 
     handle as _
 }

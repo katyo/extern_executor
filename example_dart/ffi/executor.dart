@@ -1,7 +1,7 @@
 import 'dart:ffi';
 import 'dart:isolate';
 
-class _RustTask extends Struct {}
+final class _RustTask extends Opaque {}
 
 typedef _rustTaskPoll = Int8 Function(Pointer<_RustTask> task);
 typedef _RustTaskPoll = int Function(Pointer<_RustTask> task);
@@ -18,7 +18,7 @@ class Executor {
   final _RustTaskPoll _taskPoll;
   final _RustTaskDrop _taskDrop;
   final _RustLoopInit _loopInit;
-  ReceivePort _wakePort;
+  ReceivePort? _wakePort;
 
   Executor(DynamicLibrary dylib)
   : _taskPoll = dylib.lookup<NativeFunction<_rustTaskPoll>>('rust_async_executor_dart_poll').asFunction()
@@ -31,12 +31,20 @@ class Executor {
   bool get stopped => !started;
 
   void start() {
+    if (_wakePort != null) {
+      print("already started");
+      return;
+    }
     _wakePort = ReceivePort()..listen(_pollTask);
-    _loopInit(_wakePort.sendPort.nativePort, NativeApi.postCObject);
+    _loopInit(_wakePort!.sendPort.nativePort, NativeApi.postCObject);
   }
 
   void stop() {
-    _wakePort.close();
+    if (_wakePort == null) {
+      print("already stopped");
+      return;
+    }
+    _wakePort!.close();
     _wakePort = null;
   }
 

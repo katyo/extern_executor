@@ -53,8 +53,10 @@ main() async {
   executor.stop();
 }
 
-String dylibPath(String name, {String path}) {
-  if (path == null) path = '';
+String dylibPath(String name, {String path = ''}) {
+  if (path.length > 0 && !path.endsWith('/')) {
+    path += '/';
+  }
   if (Platform.isLinux || Platform.isAndroid)
   return '${path}lib${name}.so';
   if (Platform.isMacOS) return '${path}lib${name}.dylib';

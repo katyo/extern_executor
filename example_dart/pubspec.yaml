@@ -1,3 +1,5 @@
 name: example_app
 dependencies:
-  ffi: ^0.1.3
+  ffi: ^2.0.2
+environment:
+  sdk: ^3.0.0

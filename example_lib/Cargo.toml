@@ -10,31 +10,31 @@ publish = false
 crate_type = ["staticlib", "cdylib"]
 
 [dependencies]
-futures = "^0.3"
+futures = "0.3"
 
 [dependencies.futures-timer]
-version = "^3.0"
+version = "3"
 optional = true
 
 [dependencies.async-std]
-version = "^1.5"
+version = "1"
 optional = true
 
 [dependencies.async-std-resolver]
-version = "^0.19"
+version = "0.22"
 optional = true
 
 [dependencies.tokio]
-version = "^0.2"
+version = "1"
 optional = true
 
 [dependencies.extern_executor]
-version = "^0.1"
+version = "0.1"
 path = "../extern_executor"
 features = ["cbindgen"]
 
 [build-dependencies]
-cbindgen = "^0.14"
+cbindgen = "0.24"
 
 [features]
 default = ["futures-delay", "async-std-read-file", "async-std-ns-lookup"]
@@ -61,4 +61,4 @@ async-std-ns-lookup = ["async-std", "async-std-resolver", "ns-lookup"]
 
 tokio-delay = ["tokio", "tokio/time", "delay"]
 tokio-read-file = ["tokio", "tokio/fs", "read-file"]
-tokio-ns-lookup = ["tokio", "tokio/dns", "ns-lookup"]
+tokio-ns-lookup = ["tokio", "tokio/net", "ns-lookup"]

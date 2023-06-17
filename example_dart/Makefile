@@ -44,7 +44,7 @@ clean:
 	rm -f $(BINARY)
 
 prepare:
-	pub get
+	dart pub get
 
 build-lib:
 	cd ../example_lib && cargo build $(CARGOFLAGS)

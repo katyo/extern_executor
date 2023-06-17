@@ -34,7 +34,7 @@ pub fn with_tokio_reactor<T>(f: impl FnOnce() -> T) -> T {
 
 #[cfg(feature = "delay")]
 #[no_mangle]
-pub extern "C" fn delay(duration: f32, callback: fn(UserData), userdata: UserData) {
+pub extern "C" fn delay(duration: f32, callback: extern "C" fn(UserData), userdata: UserData) {
     spawn(async move {
         let duration = std::time::Duration::from_secs_f32(duration);
 
@@ -53,7 +53,7 @@ pub extern "C" fn delay(duration: f32, callback: fn(UserData), userdata: UserDat
 
 #[cfg(feature = "read-file")]
 #[no_mangle]
-pub extern "C" fn read_file(path: *const c_char, callback: fn(*mut c_char, *mut c_char, UserData), userdata: UserData) {
+pub extern "C" fn read_file(path: *const c_char, callback: extern "C" fn(*mut c_char, *mut c_char, UserData), userdata: UserData) {
     use std::{ptr::null_mut, ffi::{CStr, CString}};
 
     let path = unsafe { CStr::from_ptr(path) };
@@ -136,7 +136,7 @@ pub mod ns_lookup {
     }
 
     #[no_mangle]
-    pub extern "C" fn ns_lookup(domain: *const c_char, callback: fn(*mut IPAddr, *mut c_char, UserData), userdata: UserData) {
+    pub extern "C" fn ns_lookup(domain: *const c_char, callback: extern "C" fn(*mut IPAddr, *mut c_char, UserData), userdata: UserData) {
         use std::{ptr::null_mut, ffi::{CStr, CString}};
 
         let domain = unsafe { CStr::from_ptr(domain) };

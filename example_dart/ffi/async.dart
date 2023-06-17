@@ -11,7 +11,7 @@ class Task<T> {
 
 class _TaskData<T, X> {
   final Completer<T> completer;
-  final X context;
+  final X? context;
 
   _TaskData(this.completer, [this.context]) {}
 }
@@ -30,11 +30,11 @@ class Dispatcher {
   }
 
   void complete<T, X>(Pointer<Void> id, T Function(X context) func) {
-    final _TaskData<T, X> task = _pending.remove(id.address);
+    final _TaskData<T, X> task = _pending.remove(id.address) as _TaskData<T, X>;
     T val;
 
     try {
-      val = func(task.context);
+      val = func(task.context!);
     } catch (err) {
       task.completer.completeError(err);
       return;

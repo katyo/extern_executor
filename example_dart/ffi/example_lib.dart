@@ -11,24 +11,24 @@ typedef _rustReadFileCb = Void Function(Pointer<Utf8> data, Pointer<Utf8> error,
 typedef _rustReadFile = Void Function(Pointer<Utf8> path, Pointer<NativeFunction<_rustReadFileCb>> callback, Pointer<Void> userdata);
 typedef _RustReadFile = void Function(Pointer<Utf8> path, Pointer<NativeFunction<_rustReadFileCb>> callback, Pointer<Void> userdata);
 
-class IPAddr extends Struct {
-  @Uint8() int b0;
-  @Uint8() int b1;
-  @Uint8() int b2;
-  @Uint8() int b3;
-  @Uint8() int b4;
-  @Uint8() int b5;
-  @Uint8() int b6;
-  @Uint8() int b7;
-  @Uint8() int b8;
-  @Uint8() int b9;
-  @Uint8() int b10;
-  @Uint8() int b11;
-  @Uint8() int b12;
-  @Uint8() int b13;
-  @Uint8() int b14;
-  @Uint8() int b15;
-  @Uint8() int kind;
+final class IPAddr extends Struct {
+  @Uint8() external int b0;
+  @Uint8() external int b1;
+  @Uint8() external int b2;
+  @Uint8() external int b3;
+  @Uint8() external int b4;
+  @Uint8() external int b5;
+  @Uint8() external int b6;
+  @Uint8() external int b7;
+  @Uint8() external int b8;
+  @Uint8() external int b9;
+  @Uint8() external int b10;
+  @Uint8() external int b11;
+  @Uint8() external int b12;
+  @Uint8() external int b13;
+  @Uint8() external int b14;
+  @Uint8() external int b15;
+  @Uint8() external int kind;
 }
 
 class IpAddr {
@@ -113,12 +113,12 @@ class ExampleLib {
   static void _readFileCb_(Pointer<Utf8> rawData, Pointer<Utf8> rawError, Pointer<Void> taskId) {
     asyncDispatcher.complete(taskId, (ExampleLib lib) {
         if (rawData != nullptr) {
-          final data = Utf8.fromUtf8(rawData);
+          final data = rawData.toDartString();
           lib._freeCStr(rawData);
 
           return data;
         } else {
-          final error = Utf8.fromUtf8(rawError);
+          final error = rawError.toDartString();
           lib._freeCStr(rawError);
 
           throw error;
@@ -129,13 +129,13 @@ class ExampleLib {
   Future<String> readFile(String path) async {
     final Task<String> task = asyncDispatcher.initiate(this);
 
-    final rawPath = Utf8.toUtf8(path);
+    final rawPath = path.toNativeUtf8();
 
     _readFile(rawPath, _readFileCb, task.id);
 
     final data = await task.future;
 
-    free(rawPath);
+    malloc.free(rawPath);
 
     return data;
   }
@@ -148,7 +148,7 @@ class ExampleLib {
 
           return addr;
         } else {
-          final error = Utf8.fromUtf8(rawError);
+          final error = rawError.toDartString();
           lib._freeCStr(rawError);
 
           throw error;
@@ -159,13 +159,13 @@ class ExampleLib {
   Future<IpAddr> nsLookup(String domain) async {
     final Task<IpAddr> task = asyncDispatcher.initiate(this);
 
-    final rawDomain = Utf8.toUtf8(domain);
+    final rawDomain = domain.toNativeUtf8();
 
     _nsLookup(rawDomain, _nsLookupCb, task.id);
 
     final data = await task.future;
 
-    free(rawDomain);
+    malloc.free(rawDomain);
 
     return data;
   }
