@@ -1,12 +1,6 @@
 use crate::{
-    Box, BoxFuture,
-    WrappedUserData,
-    Arc, Mutex, mutex_lock,
-    Context, Poll,
-    Wake, waker_ref,
-    ExternTask, InternTask,
-    TaskWake, global,
-    transmute,
+    global, mutex_lock, transmute, waker_ref, Arc, Box, BoxFuture, Context, ExternTask, InternTask,
+    Mutex, Poll, TaskWake, Wake, WrappedUserData,
 };
 
 pub(crate) type BoxedPoll = Box<dyn FnMut() -> bool>;
@@ -47,13 +41,9 @@ impl<T> Task<T> {
 
     pub fn poll(self: &Arc<Self>) -> bool {
         let mut future = mutex_lock(&self.future);
-        let waker = waker_ref(&self);
-        let context = &mut Context::from_waker(&*waker);
+        let waker = waker_ref(self);
+        let context = &mut Context::from_waker(&waker);
 
-        if let Poll::Pending = future.as_mut().poll(context) {
-            true
-        } else {
-            false
-        }
+        matches!(future.as_mut().poll(context), Poll::Pending)
     }
 }

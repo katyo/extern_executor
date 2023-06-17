@@ -5,7 +5,7 @@ use dart_sys::{
 use crate::{
     ffi,
     ffi::{ExternData, ExternTask, InternTask},
-    null_mut,
+    null_mut, Box,
 };
 
 /// Dart's data structure

@@ -1,23 +1,17 @@
-///! widely used types and functions
+//! widely used types and functions
 
 #[cfg(feature = "no_std")]
-pub use alloc::{
-    sync::Arc,
-    boxed::Box,
-};
+pub use alloc::{boxed::Box, sync::Arc};
 
 #[cfg(not(feature = "no_std"))]
-pub use std::{
-    sync::Arc,
-    boxed::Box,
-};
+pub use std::{boxed::Box, sync::Arc};
 
 pub use core::pin::Pin;
 
 pub use core::{
-    ptr::null_mut,
-    mem::transmute,
     future::Future,
+    mem::transmute,
+    ptr::null_mut,
     task::{Context, Poll},
 };
 
@@ -28,10 +22,10 @@ pub use std::sync::{Mutex, MutexGuard};
 pub use spin::{Mutex, MutexGuard};
 
 #[cfg(not(feature = "woke"))]
-pub use futures_task::{ArcWake as Wake, waker_ref};
+pub use futures_task::{waker_ref, ArcWake as Wake};
 
 #[cfg(feature = "woke")]
-pub use woke::{Woke as Wake, waker_ref};
+pub use woke::{waker_ref, Woke as Wake};
 
 pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 

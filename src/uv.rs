@@ -1,3 +1,4 @@
+use crate::Box;
 use core::mem::MaybeUninit;
 
 #[allow(non_camel_case_types, dead_code, improper_ctypes)]
@@ -68,9 +69,7 @@ mod libuv_sys {
         event: *mut c_void,
     }
 
-    pub(crate) type uv_async_cb = extern "C" fn(
-        handle: *mut uv_async_t,
-    );
+    pub(crate) type uv_async_cb = extern "C" fn(handle: *mut uv_async_t);
 
     extern "C" {
         pub(crate) fn uv_async_init(
@@ -79,30 +78,18 @@ mod libuv_sys {
             async_cb: uv_async_cb,
         ) -> c_int;
 
-        pub(crate) fn uv_async_send(
-            async_: *mut uv_async_t,
-        ) -> c_int;
+        pub(crate) fn uv_async_send(async_: *mut uv_async_t) -> c_int;
 
-        pub(crate) fn uv_close(
-            handle: *mut uv_handle_t,
-            close_cb: *mut c_void,
-        );
+        pub(crate) fn uv_close(handle: *mut uv_handle_t, close_cb: *mut c_void);
     }
 }
 
-use libuv_sys::{
-    uv_handle_t,
-    uv_loop_t,
-    uv_async_t,
-    uv_async_init,
-    uv_async_send,
-    uv_close,
-};
+use libuv_sys::{uv_async_init, uv_async_send, uv_async_t, uv_close, uv_handle_t, uv_loop_t};
 
 use crate::{
-    UserData,
-    null_mut, transmute,
-    ffi, ffi::{ExternData, ExternTask, InternTask},
+    ffi,
+    ffi::{ExternData, ExternTask, InternTask},
+    null_mut,
 };
 
 /// Libuv loop handle
@@ -110,13 +97,9 @@ pub struct UvLoop;
 
 extern "C" fn task_new(data: ExternData) -> ExternTask {
     let uv_loop = data as *mut uv_loop_t;
-    #[allow(invalid_value)]
-    let handle = unsafe { MaybeUninit::<uv_async_t>::uninit().assume_init() };
-
-    let handle = Box::into_raw(Box::new(handle));
+    let handle = MaybeUninit::<uv_async_t>::uninit();
+    let handle = Box::into_raw(Box::new(unsafe { handle.assume_init() }));
     unsafe { uv_async_init(uv_loop, handle, task_poll) };
-
-    //let handle = Box::into_raw(Box::new(unsafe { handle.assume_init() }));
 
     handle as _
 }
@@ -133,7 +116,7 @@ extern "C" fn task_poll(handle: *mut uv_async_t) {
 
     if !ffi::task_poll(task) {
         ffi::task_drop(task);
-        unsafe { uv_close(handle as *mut _ as *mut uv_handle_t, transmute(null_mut() as UserData)) };
+        unsafe { uv_close(handle as *mut _ as *mut uv_handle_t, null_mut()) };
     }
 }
 

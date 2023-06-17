@@ -26,6 +26,7 @@ optional = true
 
 [dependencies.tokio]
 version = "1"
+features = ["rt-multi-thread"]
 optional = true
 
 [dependencies.extern_executor]
@@ -60,5 +61,5 @@ async-std-read-file = ["async-std", "read-file"]
 async-std-ns-lookup = ["async-std", "async-std-resolver", "ns-lookup"]
 
 tokio-delay = ["tokio", "tokio/time", "delay"]
-tokio-read-file = ["tokio", "tokio/fs", "read-file"]
+tokio-read-file = ["tokio", "tokio/io-util", "tokio/fs", "read-file"]
 tokio-ns-lookup = ["tokio", "tokio/net", "ns-lookup"]
