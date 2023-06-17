@@ -3,7 +3,7 @@ name = "example_lib"
 version = "0.1.3"
 description = "Example library to demonstrate external async executor usage."
 authors = ["K. <kayo@illumium.org>"]
-edition = "2018"
+edition = "2021"
 publish = false
 
 [lib]
@@ -30,7 +30,7 @@ optional = true
 
 [dependencies.extern_executor]
 version = "0.1"
-path = "../extern_executor"
+path = ".."
 features = ["cbindgen"]
 
 [build-dependencies]
